@@ -193,7 +193,7 @@ function freePoint() {
 }
 
 function resetGame() {
-  gt = 0; timeLeft = ROUND; score = 0; encounters = []; floats = []; confetti = []; prospects = []; fbIdx = 0; spawnAt = 0;
+  usedNames = new Set(); gt = 0; timeLeft = ROUND; score = 0; encounters = []; floats = []; confetti = []; prospects = []; fbIdx = 0; spawnAt = 0;
   player = { demos:0, cornered:0, frozenKind:'demo', x: W/2, y: 545, frozenUntil: 0, boostUntil: 0, safeUntil: 3, face: 1, walk: 0, demoRep: null };
   enemies = [
     { type:'rep', x:150, y:222, hx:150, hy:222, cool:0 },
@@ -205,6 +205,10 @@ function resetGame() {
   hummus = { ...freePoint(), at: 6, on: false };
 }
 
+let usedNames = new Set();
+function cacheLoad() { try { const c = JSON.parse(localStorage.getItem('nbCast') || '{}'); return c.key === inputsKey() ? c.list : []; } catch { return []; } }
+function cacheAdd(p) { try { const list = [p, ...cacheLoad().filter(x => x.name !== p.name)].slice(0, 40); localStorage.setItem('nbCast', JSON.stringify({ key: inputsKey(), list })); } catch {} }
+function cachedNext() { const c = cacheLoad().filter(x => !usedNames.has(x.name)); return c.length ? c[Math.floor(Math.random()*c.length)] : null; }
 let castAbort = null, castKey = '', castFailed = false;
 const inputsKey = () => $('conf').value.trim() + '|' + $('prod').value.trim();
 function prewarm() { fetchProspects($('conf').value.trim() || 'a tech conference', $('prod').value.trim() || 'something'); }
@@ -234,7 +238,7 @@ function takeLine(line) {
   try {
     const p = JSON.parse(line);
     if (!p.name || !p.objection || !Array.isArray(p.replies) || p.replies.length !== 3 || p.replies.filter(r => r.good).length !== 1) return;
-    p.ai = true; aiPool.push(p); aiTotal++;
+    p.ai = true; aiPool.push(p); aiTotal++; cacheAdd(p);
     setTicker(`Fable 5.1 just invented #${aiTotal}: <b>${esc(p.name)}</b>, ${esc(p.title)} @ ${esc(p.company)}`);
     beep(1200, .04, 'sine', .03);
     banner = { a:`FABLE 5.1 JUST INVENTED #${aiTotal}`, b:`${p.name}, ${p.title} @ ${p.company}`, until: performance.now() + 2600 };
@@ -244,8 +248,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 function setTicker(html) { $('ticker').innerHTML = html; }
 
 function spawnProspect() {
-  const data = aiPool.shift() || (castFailed || gt > 12 ? FALLBACK[fbIdx++ % FALLBACK.length] : null);
+  while (aiPool.length && usedNames.has(aiPool[0].name)) aiPool.shift();
+  const data = aiPool.shift() || cachedNext() || (castFailed || gt > 6 ? FALLBACK[fbIdx++ % FALLBACK.length] : null);
   if (!data) return;
+  usedNames.add(data.name);
   const p = freePoint();
   let tries = 0;
   while (Math.hypot(p.x-player.x, p.y-player.y) < 160 && tries++ < 10) Object.assign(p, freePoint());

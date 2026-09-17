@@ -25,26 +25,28 @@ Write it in peak cringe LinkedIn style: one-line paragraphs, a humblebrag, a for
 
 function streamText(params: { system: string; user: string; maxTokens: number }) {
   const encoder = new TextEncoder();
+  let upstream: any = null, closed = false;
   return new Response(
     new ReadableStream({
+      cancel() { closed = true; try { upstream?.abort(); } catch {} },
       async start(controller) {
         try {
-          const stream = client.messages.stream({
+          const stream = upstream = client.messages.stream({
             model: MODEL,
             max_tokens: params.maxTokens,
             output_config: { effort: "low" },
             system: params.system,
             messages: [{ role: "user", content: params.user }],
           } as any);
-          stream.on("text", (t: string) => controller.enqueue(encoder.encode(t)));
+          stream.on("text", (t: string) => { if (!closed) controller.enqueue(encoder.encode(t)); });
           const final = await stream.finalMessage();
           if (final.stop_reason === "refusal") {
             controller.enqueue(encoder.encode("\n"));
           }
         } catch (err) {
-          console.error("API error:", err instanceof Anthropic.APIError ? `${err.status} ${err.message}` : err);
+          if (!closed) console.error("API error:", err instanceof Anthropic.APIError ? `${err.status} ${err.message}` : String(err));
         } finally {
-          controller.close();
+          if (!closed) controller.close();
         }
       },
     }),
@@ -63,7 +65,7 @@ Bun.serve({
       return streamText({
         system: PROSPECT_SYSTEM,
         maxTokens: 8000,
-        user: `Conference: ${String(conference).slice(0, 200)}\nWhat the player sells: ${String(product).slice(0, 200)}\n\nWrite 18 prospects.`,
+        user: `Conference: ${String(conference).slice(0, 200)}\nWhat the player sells: ${String(product).slice(0, 200)}\n\nWrite 14 prospects.`,
       });
     }
 

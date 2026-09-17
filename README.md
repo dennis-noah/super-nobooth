@@ -1,5 +1,7 @@
 # Super NoBooth
 
+![Super NoBooth gameplay](demo.gif)
+
 A retro arcade game about booking meetings at a conference when you have no booth.
 Built in under an hour at Fable 5.1 Build Day, Tel Aviv (Delight track).
 
@@ -7,6 +9,10 @@ You wake up on the expo floor with 0 meetings and 90 seconds. Walk up to prospec
 that books the meeting (the other two get you roasted), and dodge the booth reps who trap you in
 "a quick demo", the badge scanner who adds you to 14 newsletters, and the guy who follows you all
 round pitching his startup. Hummus makes you fast.
+
+Full 30-second clip with the intro: [super-nobooth-demo.mp4](super-nobooth-demo.mp4)
+
+![The expo floor](screenshot.png)
 
 ## What Fable 5.1 does
 
