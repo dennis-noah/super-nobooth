@@ -159,7 +159,7 @@ function beep(freq, dur = .08, type = 'square', vol = .05) {
   const o = actx.createOscillator(), g = actx.createGain();
   o.type = type; o.frequency.value = freq; g.gain.value = vol;
   g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
-  o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+  o.connect(g); g.connect(actx.destination); if (window.__recDest) g.connect(window.__recDest); o.start(); o.stop(actx.currentTime + dur);
 }
 const LEAD = [69,0,72,76, 0,72,69,0, 67,0,71,74, 0,71,67,0, 65,0,69,72, 0,69,65,0, 64,0,68,71, 76,0,75,0];
 const BASS = [45,43,41,40];

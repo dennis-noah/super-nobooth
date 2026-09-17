@@ -10,7 +10,7 @@ that books the meeting (the other two get you roasted), and dodge the booth reps
 "a quick demo", the badge scanner who adds you to 14 newsletters, and the guy who follows you all
 round pitching his startup. Hummus makes you fast.
 
-Full 30-second clip with the intro: [super-nobooth-demo.mp4](super-nobooth-demo.mp4)
+Full clip with sound, the intro and the ending: [super-nobooth-demo.mp4](super-nobooth-demo.mp4)
 
 ![The expo floor](screenshot.png)
 
