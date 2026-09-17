@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Super NoBooth</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root { --p:#7C3AED; --pd:#4C1D95; --pl:#C4B5FD; --bg:#0B0B12; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:#fff; overflow:hidden; }
+  body { display:flex; align-items:center; justify-content:center; font-family:'Press Start 2P', ui-monospace, monospace; }
+  #wrap { position:relative; width:960px; height:640px; transform-origin:center center; }
+  canvas { display:block; width:960px; height:600px; image-rendering:pixelated; background:#15131f; }
+  #ticker { height:40px; line-height:40px; padding:0 14px; font-size:10px; color:var(--pl); background:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-top:3px solid var(--p); }
+  #ticker b { color:#fff; font-weight:normal; }
+  .overlay { position:absolute; left:0; top:0; width:960px; height:600px; display:none; align-items:center; justify-content:center; flex-direction:column; text-align:center; }
+  .overlay.on { display:flex; }
+  #title { background:radial-gradient(circle at 50% 30%, #2a1a55 0%, #0B0B12 70%); gap:18px; }
+  #title h1 { font-size:44px; margin:0; letter-spacing:2px; text-shadow:4px 4px 0 var(--p); }
+  #title h1 span { color:var(--pl); }
+  #title p { font-size:11px; line-height:1.9; color:#cfc8ea; margin:0; max-width:720px; }
+  label { font-size:9px; color:var(--pl); display:block; text-align:left; margin-bottom:6px; }
+  input { width:560px; padding:12px; font:600 16px system-ui, sans-serif; border:3px solid var(--p); background:#fff; color:#111; outline:none; }
+  button { font-family:inherit; cursor:pointer; }
+  .big { font-size:16px; padding:16px 28px; background:var(--p); color:#fff; border:0; box-shadow:5px 5px 0 #000, 5px 5px 0 2px var(--pl); }
+  .big:hover { background:#8b4dff; }
+  .hint { font-size:9px; color:#8f88ad; }
+  #dialog { background:rgba(8,6,18,.78); }
+  .card { width:780px; background:#fff; color:#111; border:5px solid var(--p); box-shadow:8px 8px 0 #000; padding:22px 26px; text-align:left; }
+  .who { font-size:13px; color:var(--pd); line-height:1.6; }
+  .who small { display:block; font:600 15px system-ui, sans-serif; color:#555; margin-top:4px; }
+  .bubble { font:700 22px/1.35 system-ui, sans-serif; margin:16px 0 18px; padding:14px 16px; background:#f1ecff; border-left:6px solid var(--p); }
+  .reply { display:flex; gap:12px; align-items:center; width:100%; margin:8px 0; padding:12px 14px; text-align:left; font:600 17px/1.3 system-ui, sans-serif; background:#fff; color:#111; border:3px solid #111; }
+  .reply:hover { background:#f1ecff; }
+  .reply kbd { font-family:'Press Start 2P', monospace; font-size:11px; background:#111; color:#fff; padding:7px 9px; }
+  .reply.good { background:#d9fbe3; border-color:#0a7a2f; }
+  .reply.bad { background:#ffe1e1; border-color:#b00020; }
+  .reply.dim { opacity:.35; }
+  #dReact { min-height:34px; margin-top:14px; font:700 19px/1.35 system-ui, sans-serif; }
+  #dReact.good { color:#0a7a2f; } #dReact.bad { color:#b00020; }
+  .tag { margin-top:10px; font-size:8px; color:var(--p); }
+  #end { background:rgba(8,6,18,.92); gap:12px; }
+  #end h2 { font-size:30px; margin:0; text-shadow:3px 3px 0 var(--p); }
+  #rank { font-size:13px; color:var(--pl); }
+  .li { width:640px; background:#fff; color:#111; text-align:left; border-radius:10px; padding:16px 18px; font:400 15px/1.45 system-ui, sans-serif; box-shadow:6px 6px 0 var(--p); }
+  .li .head { display:flex; gap:12px; align-items:center; margin-bottom:10px; }
+  .li .av { width:46px; height:46px; border-radius:50%; background:var(--p); color:#fff; display:flex; align-items:center; justify-content:center; font:700 18px system-ui, sans-serif; }
+  .li .nm { font-weight:700; } .li .tt { color:#666; font-size:13px; }
+  #liText { white-space:pre-wrap; min-height:150px; max-height:300px; overflow:auto; font-size:14px; }
+  .li .foot { margin-top:10px; padding-top:8px; border-top:1px solid #ddd; color:#666; font-size:12px; display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="960" height="600"></canvas>
+  <div id="ticker">SUPER NOBOOTH &nbsp;·&nbsp; cast invented live by Fable 5.1</div>
+
+  <div id="title" class="overlay on">
+    <svg width="84" height="84" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M30 8 H92 V58 Q92 92 58 92 H46 V54 H30 Z" fill="#7C3AED"/>
+      <path d="M22 8 L96 82 L88 90 L14 16 Z" fill="#0B0B12"/>
+      <rect x="70" y="20" width="10" height="5" fill="#0B0B12" transform="rotate(45 75 22)"/>
+      <rect x="8" y="58" width="12" height="12" fill="#7C3AED"/><rect x="24" y="72" width="12" height="12" fill="#7C3AED"/><rect x="8" y="86" width="9" height="9" fill="#7C3AED"/>
+    </svg>
+    <h1>SUPER <span>NOBOOTH</span></h1>
+    <p>You flew to the conference. You have no booth. You have 90 seconds.<br>Book meetings. Dodge the demo reps.</p>
+    <div><label for="conf">WHICH CONFERENCE? (Fable 5.1 invents the whole cast for it, live)</label>
+      <input id="conf" value="Fable 5.1 Build Day, Tel Aviv" maxlength="120"></div>
+    <div><label for="prod">WHAT ARE YOU SELLING?</label>
+      <input id="prod" value="NoBooth: booked meetings at conferences, without paying for a booth" maxlength="160"></div>
+    <button class="big" id="startBtn">START  (ENTER)</button>
+    <div class="hint">ARROWS / WASD to run · 1 2 3 to answer · SPACE escapes demos · M music · hummus makes you fast</div>
+  </div>
+
+  <div id="dialog" class="overlay">
+    <div class="card">
+      <div class="who"><span id="dName"></span><small id="dTitle"></small></div>
+      <div class="bubble" id="dObj"></div>
+      <div id="dReplies"></div>
+      <div id="dReact"></div>
+      <div class="tag" id="dTag"></div>
+    </div>
+  </div>
+
+  <div id="end" class="overlay">
+    <h2 id="endScore"></h2>
+    <div id="rank"></div>
+    <div class="li">
+      <div class="head"><div class="av" id="liAv"></div><div><div class="nm" id="liName"></div><div class="tt" id="liTitle"></div></div></div>
+      <div id="liText"></div>
+      <div class="foot"><span>written live by Fable 5.1 from this run</span><span>4,812 reactions · 0 meetings booked from this post</span></div>
+    </div>
+    <button class="big" id="againBtn">PLAY AGAIN  (R)</button>
+  </div>
+</div>
+
+<script>
+const W = 960, H = 600, ROUND = 90;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+const PX = "'Press Start 2P', monospace";
+
+function fit() {
+  const s = Math.min(innerWidth / 960, innerHeight / 640);
+  $('wrap').style.transform = `scale(${s})`;
+}
+addEventListener('resize', fit); fit();
+
+const FALLBACK = [
+  { name:"Shira Levi", title:"VP of Vibes", company:"SynergyAI", objection:"Sorry, I only take meetings with companies that have a booth. And a DJ.",
+    replies:[{text:"No booth. That's why I can afford to be useful. 15 minutes tomorrow?",good:true,reaction:"Ha. Fine. 9:30, by the bad coffee."},
+             {text:"Quick one, I hope this finds you well, circling back on synergies.",good:false,reaction:"You circled back before ever circling forward. No."},
+             {text:"I AM the booth.",good:false,reaction:"Security is already walking over."}] },
+  { name:"Yoav Mizrahi", title:"Chief Blockchain Officer", company:"Blockchain 4 Dogs", objection:"Send me an email. I read all of them. Definitely.",
+    replies:[{text:"Leveraging best-in-class paradigms, we unlock holistic value at scale.",good:false,reaction:"I felt my soul leave during 'paradigms'."},
+             {text:"You won't read it. Two minutes now, and I'll never email you.",good:true,reaction:"Honest. Rare. Okay, walk with me."},
+             {text:"I already emailed you 11 times. Did you get them?",good:false,reaction:"So YOU are 'urgent re: re: re:'. Blocked."}] },
+  { name:"Noa Ben-David", title:"Head of Heads", company:"CloudCloud.cloud", objection:"I'm just here for the free socks, honestly.",
+    replies:[{text:"Please. My CEO is watching me from behind that plant.",good:false,reaction:"That's a ficus. Get help."},
+             {text:"Same. But the socks won't fix your pipeline. Coffee after the keynote?",good:true,reaction:"Okay that was good. Coffee. You're buying."},
+             {text:"Let me double-click on that and take it offline with a deck.",good:false,reaction:"Nobody has ever wanted a deck less."}] },
+  { name:"Amit Katz", title:"Agentic Agent Manager", company:"Agentic Agents", objection:"Is this a pitch? My agent handles all my pitches now.",
+    replies:[{text:"Then your agent can book it. Thursday, 20 minutes, humans only.",good:true,reaction:"My agent says yes. So do I."},
+             {text:"I am also an agent. Beep boop. Schedule meeting.",good:false,reaction:"My agent just filed a restraining order."},
+             {text:"Per my last email, I wanted to gently bump this to the top.",good:false,reaction:"There was no last email. There will be no next one."}] },
+  { name:"Tamar Golan", title:"Stealth Founder", company:"Stealth Mode Inc", objection:"I can't tell you what we do. Or if I'm even here.",
+    replies:[{text:"Disruptive! Let's ideate a win-win in the metaverse.",good:false,reaction:"I'm now in stealth mode from you specifically."},
+             {text:"I'll sign any NDA. I'll sign your arm.",good:false,reaction:"Too eager. Much too eager."},
+             {text:"Perfect. Secret meeting, 4pm, I won't tell anyone either.",good:true,reaction:"...I like you. 4pm. Come alone."}] },
+  { name:"Daniel Peretz", title:"Senior Pivot Lead", company:"Pivot.ly", objection:"We pivoted this morning, so whatever you sell, we don't need it anymore.",
+    replies:[{text:"Great, you'll need new customers by lunch. That's what I do.",good:true,reaction:"Painfully accurate. Lunch it is."},
+             {text:"Can I interest you in a 47-slide overview?",good:false,reaction:"You sound like the booth people. Walk away."},
+             {text:"I'll pivot too. What do you want me to sell?",good:false,reaction:"Have some dignity. Just a little."}] },
+];
+
+const BOOTH_NAMES = ["SynergyAI","Blockchain 4 Dogs","CloudCloud.cloud","Agentic Agents","Pivot.ly","YetAnotherCRM","Stealth Mode Inc","Hummus-as-a-Service"];
+const BOOTH_COLS = ["#ef4444","#f59e0b","#0ea5e9","#10b981","#ec4899","#64748b","#111827","#d97706"];
+const booths = [];
+for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++)
+  booths.push({ x:70 + i*215, y: r ? 345 : 105, w:160, h:84, name:BOOTH_NAMES[r*4+i], col:BOOTH_COLS[r*4+i] });
+
+const SKINS = ["#f2c9a0","#d9a066","#a8703f","#f7d7c4","#8d5524"];
+const HAIRS = ["#1b1b1b","#5a3825","#c9a227","#8b8b8b","#b03a2e"];
+const SHIRTS = ["#2563eb","#0ea5e9","#10b981","#f472b6","#f59e0b","#94a3b8"];
+const GUY_LINES = ["It's like Uber, but for hummus.","We're pre-revenue. And pre-product.","My cousin is our CTO.","We're the OpenAI of parking.","Do you know any investors?","It's AI. For AI. By AI.","We pivoted twice since I started talking.","Just 2 minutes! It's been 40.","We're in stealth. Let me tell you everything.","Are YOU an investor?","My mom says it's a unicorn.","We have 3 users. All me."];
+const ACCS = ['none','glasses','cap','long','beard','bun','shades','headset'];
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const rnd = (a,b) => a + Math.random()*(b-a);
+
+let state = 'title', last = 0, gt = 0, timeLeft = ROUND, score = 0;
+let player, prospects, enemies, hummus, floats, confetti, encounters;
+let banner = null, lastTick = 99;
+let aiPool = [], aiTotal = 0, fbIdx = 0, spawnAt = 0, flashUntil = 0, introT = 0, introLine = 0, currentDialog = null, dialogTimer = null;
+const keys = {};
+
+let actx;
+function beep(freq, dur = .08, type = 'square', vol = .05) {
+  if (!actx) return;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = freq; g.gain.value = vol;
+  g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+  o.connect(g).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+}
+const LEAD = [69,0,72,76, 0,72,69,0, 67,0,71,74, 0,71,67,0, 65,0,69,72, 0,69,65,0, 64,0,68,71, 76,0,75,0];
+const BASS = [45,43,41,40];
+let step = 0, muted = false, musicOn = false;
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function musicTick() {
+  const fast = state === 'play' && timeLeft < 15;
+  if (!muted && actx && (state === 'play' || state === 'dialog')) {
+    const quiet = state === 'dialog' || gt < player.frozenUntil;
+    const root = BASS[Math.floor(step / 8) % 4];
+    if (step % 2 === 0) beep(hz(root + (step % 4 === 0 ? 0 : 12)), .13, 'triangle', quiet ? .05 : .09);
+    const n = LEAD[step % 32];
+    if (n && !quiet) beep(hz(n + (fast ? 12 : 0)), .11, 'square', .045);
+    if (!quiet && step % 4 === 2) beep(5000, .02, 'square', .008);
+    step++;
+  }
+  setTimeout(musicTick, fast ? 105 : 140);
+}
+function say() {}
+const jingle = notes => notes.forEach((n,i) => setTimeout(() => beep(n, .12), i*90));
+
+function inBooth(x, y, pad = 0) {
+  return booths.some(b => x > b.x-pad && x < b.x+b.w+pad && y > b.y-pad && y < b.y+b.h+pad);
+}
+function freePoint() {
+  for (let i = 0; i < 30; i++) {
+    const x = rnd(40, W-40), y = rnd(96, H-30);
+    if (!inBooth(x, y, 22)) return { x, y };
+  }
+  return { x: W/2, y: 270 };
+}
+
+function resetGame() {
+  gt = 0; timeLeft = ROUND; score = 0; encounters = []; floats = []; confetti = []; prospects = []; fbIdx = 0; spawnAt = 0;
+  player = { demos:0, cornered:0, frozenKind:'demo', x: W/2, y: 545, frozenUntil: 0, boostUntil: 0, safeUntil: 3, face: 1, walk: 0, demoRep: null };
+  enemies = [
+    { type:'rep', x:150, y:222, hx:150, hy:222, cool:0 },
+    { type:'rep', x:580, y:222, hx:580, hy:222, cool:0 },
+    { type:'rep', x:795, y:462, hx:795, hy:462, cool:0 },
+    { type:'scan', x:60, y:280, hx:60, hy:280, cool:0, dir:1 },
+    { type:'guy', x:910, y:570, cool:0 },
+  ];
+  hummus = { ...freePoint(), at: 6, on: false };
+}
+
+let castAbort = null, castKey = '', castFailed = false;
+const inputsKey = () => $('conf').value.trim() + '|' + $('prod').value.trim();
+function prewarm() { fetchProspects($('conf').value.trim() || 'a tech conference', $('prod').value.trim() || 'something'); }
+async function fetchProspects(conference, product) {
+  if (castAbort) castAbort.abort();
+  const ac = castAbort = new AbortController();
+  aiPool = []; aiTotal = 0; castFailed = false; castKey = inputsKey();
+  setTicker(`Fable 5.1 is inventing the cast for <b>${esc(conference)}</b>...`);
+  try {
+    const res = await fetch('/api/prospects', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ conference, product }), signal: ac.signal });
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '';
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream:true });
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) { takeLine(buf.slice(0, i)); buf = buf.slice(i+1); }
+    }
+    takeLine(buf);
+    if (!aiTotal) { castFailed = true; setTicker('Fable is offline. Playing with the house cast.'); }
+  } catch (e) { if (!ac.signal.aborted) castFailed = true; if (!ac.signal.aborted) setTicker('No connection. Playing with the house cast.'); }
+}
+function takeLine(line) {
+  line = line.trim();
+  if (!line.startsWith('{')) return;
+  try {
+    const p = JSON.parse(line);
+    if (!p.name || !p.objection || !Array.isArray(p.replies) || p.replies.length !== 3 || p.replies.filter(r => r.good).length !== 1) return;
+    p.ai = true; aiPool.push(p); aiTotal++;
+    setTicker(`Fable 5.1 just invented #${aiTotal}: <b>${esc(p.name)}</b>, ${esc(p.title)} @ ${esc(p.company)}`);
+    beep(1200, .04, 'sine', .03);
+    banner = { a:`FABLE 5.1 JUST INVENTED #${aiTotal}`, b:`${p.name}, ${p.title} @ ${p.company}`, until: performance.now() + 2600 };
+  } catch {}
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function setTicker(html) { $('ticker').innerHTML = html; }
+
+function spawnProspect() {
+  const data = aiPool.shift() || (castFailed || gt > 12 ? FALLBACK[fbIdx++ % FALLBACK.length] : null);
+  if (!data) return;
+  const p = freePoint();
+  let tries = 0;
+  while (Math.hypot(p.x-player.x, p.y-player.y) < 160 && tries++ < 10) Object.assign(p, freePoint());
+  prospects.push({ ...p, t: freePoint(), data, skin: pick(SKINS), hair: pick(HAIRS), shirt: pick(SHIRTS), acc: pick(ACCS), walk: 0, born: gt });
+}
+
+function start() {
+  if (state !== 'title') return;
+  if (!musicOn) { musicOn = true; musicTick(); }
+  step = 0;
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch {} }
+  resetGame();
+  if (castKey !== inputsKey() || castFailed || (!aiPool.length && aiTotal)) prewarm();
+  $('title').classList.remove('on'); $('end').classList.remove('on');
+  $('startBtn').blur();
+  state = 'intro'; introT = 0; introLine = 0; say(INTRO[0], .7, .95);
+}
+
+const INTRO = [
+  "Hey, you. You're finally awake.",
+  "You were trying to cross the expo floor, right? Walked right into that keynote. Same as us.",
+  "You flew all the way here with no booth...",
+  "...and 0 meetings.",
+  "Doors close in 90 seconds. Go.",
+];
+const LINE_T = 2.7;
+
+function move(ent, dx, dy) {
+  const nx = ent.x + dx, ny = ent.y + dy;
+  if (!inBooth(nx, ent.y, 10)) ent.x = Math.max(16, Math.min(W-16, nx));
+  if (!inBooth(ent.x, ny, 10)) ent.y = Math.max(84, Math.min(H-8, ny));
+}
+function toward(e, tx, ty, sp, dt) {
+  const d = Math.hypot(tx-e.x, ty-e.y); if (d < 2) return true;
+  e.x += (tx-e.x)/d*sp*dt; e.y += (ty-e.y)/d*sp*dt; e.walk += dt*8; return false;
+}
+
+function update(dt) {
+  if (state === 'intro') {
+    introT += dt;
+    if (introT > LINE_T) { introT = 0; introLine++; beep(300, .05); if (introLine < INTRO.length) say(INTRO[introLine], .7, .95); if (introLine >= INTRO.length) { state = 'play'; jingle([523,659,784,1047]); } }
+    return;
+  }
+  if (state !== 'play') return;
+  gt += dt; timeLeft -= dt;
+  if (timeLeft <= 0) return endGame();
+  if (timeLeft < 10 && Math.ceil(timeLeft) !== lastTick) { lastTick = Math.ceil(timeLeft); beep(880, .06); }
+
+  if (gt > player.frozenUntil) {
+    let dx = (keys.ArrowRight||keys.d?1:0) - (keys.ArrowLeft||keys.a?1:0);
+    let dy = (keys.ArrowDown||keys.s?1:0) - (keys.ArrowUp||keys.w?1:0);
+    if (dx || dy) {
+      const sp = (gt < player.boostUntil ? 320 : 195) / Math.hypot(dx, dy);
+      move(player, dx*sp*dt, dy*sp*dt); player.walk += dt*12; if (dx) player.face = dx;
+    }
+  }
+
+  if (prospects.length < 8 && gt > spawnAt) { spawnProspect(); spawnAt = gt + .8; }
+  for (const p of prospects) {
+    if (toward(p, p.t.x, p.t.y, 42, dt)) p.t = freePoint();
+    if (gt > player.safeUntil && gt > player.frozenUntil && Math.hypot(p.x-player.x, p.y-player.y) < 34) return openDialog(p);
+  }
+
+  for (const e of enemies) {
+    const d = Math.hypot(e.x-player.x, e.y-player.y), ready = gt > e.cool;
+    if (e.type === 'guy') {
+      if (ready && gt > 4) toward(e, player.x, player.y, 60 + gt*.4, dt);
+      if (ready && d < 26 && gt > player.safeUntil && gt > player.frozenUntil) {
+        player.frozenUntil = gt + 3; player.safeUntil = gt + 5; player.frozenKind = 'guy'; player.cornered++; e.cool = gt + 6; jingle([330,311,294,277]);
+      }
+      continue;
+    }
+    if (e.type === 'rep') {
+      if (ready && d < 150 && gt > 3) toward(e, player.x, player.y, 122, dt); else toward(e, e.hx, e.hy, 80, dt);
+      if (ready && d < 24 && gt > player.safeUntil && gt > player.frozenUntil) {
+        player.frozenUntil = gt + 3; player.safeUntil = gt + 5; player.frozenKind = 'demo'; player.demos++; say('Just a quick demo! As you can see on our roadmap', 1.4, 1.3); player.demoRep = e; e.cool = gt + 8; jingle([220,196,174]);
+      }
+    } else {
+      if (ready && d < 150) toward(e, player.x, player.y, 150, dt);
+      else { if (toward(e, e.dir > 0 ? W-60 : 60, 280, 95, dt)) e.dir *= -1; }
+      if (ready && d < 24 && gt > player.safeUntil) {
+        timeLeft -= 5; e.cool = gt + 7; player.safeUntil = gt + 1; flashUntil = gt + .35;
+        floats.push({ x:player.x, y:player.y-50, text:"BEEP! Added to 14 newsletters  -5s", col:"#fde047", until:gt+2.2 });
+        jingle([900,900,400]);
+      }
+    }
+  }
+
+  if (!hummus.on && gt > hummus.at) { Object.assign(hummus, freePoint()); hummus.on = true; }
+  if (hummus.on && Math.hypot(hummus.x-player.x, hummus.y-player.y) < 26) {
+    hummus.on = false; hummus.at = gt + 12; player.boostUntil = gt + 5;
+    floats.push({ x:player.x, y:player.y-50, text:"HUMMUS POWER!", col:"#fbbf24", until:gt+1.6 }); jingle([659,784,988,1319]);
+  }
+  for (const c of confetti) { c.x += c.vx*dt; c.y += c.vy*dt; c.vy += 500*dt; }
+  confetti = confetti.filter(c => c.y < H+20);
+  floats = floats.filter(f => f.until > gt);
+}
+
+function openDialog(p) {
+  state = 'dialog'; currentDialog = { p, done:false };
+  for (const k in keys) keys[k] = false;
+  const d = p.data;
+  $('dName').textContent = d.name;
+  $('dTitle').textContent = `${d.title} @ ${d.company}`;
+  $('dObj').textContent = `"${d.objection}"`;
+  $('dReact').textContent = ''; $('dReact').className = '';
+  $('dTag').textContent = d.ai ? 'THIS PERSON WAS INVENTED SECONDS AGO BY FABLE 5.1' : 'HOUSE CAST';
+  const box = $('dReplies'); box.textContent = '';
+  const order = d.replies.map((r, i) => i).sort(() => Math.random() - .5);
+  currentDialog.order = order;
+  order.forEach((ri, n) => {
+    const b = document.createElement('button'); b.className = 'reply';
+    const k = document.createElement('kbd'); k.textContent = n+1;
+    const t = document.createElement('span'); t.textContent = d.replies[ri].text;
+    b.append(k, t); b.onclick = () => choose(n); box.append(b);
+  });
+  $('dialog').classList.add('on'); beep(660, .06);
+}
+function choose(n) {
+  const cd = currentDialog; if (!cd || cd.done || n >= 3) return;
+  cd.done = true;
+  const r = cd.p.data.replies[cd.order[n]];
+  [...$('dReplies').children].forEach((b, i) => b.classList.add(i === n ? (r.good ? 'good' : 'bad') : 'dim'));
+  $('dReact').textContent = `${cd.p.data.name.split(' ')[0]}: "${r.reaction}"` + (r.good ? '   MEETING BOOKED!' : '   -5s');
+  $('dReact').className = r.good ? 'good' : 'bad';
+  say(r.reaction, r.good ? 1.2 : .9);
+  encounters.push({ name:cd.p.data.name, title:cd.p.data.title, company:cd.p.data.company, playerSaid:r.text, theySaid:r.reaction, booked:!!r.good });
+  if (r.good) { score++; jingle([523,659,784,1047,1319]); for (let i = 0; i < 40; i++) confetti.push({ x:player.x, y:player.y-20, vx:rnd(-220,220), vy:rnd(-420,-120), c:pick(["#7C3AED","#C4B5FD","#fff","#fbbf24"]) }); }
+  else { timeLeft -= 5; flashUntil = gt + .35; jingle([196,147]); }
+  dialogTimer = setTimeout(closeDialog, 2800);
+}
+function closeDialog() {
+  clearTimeout(dialogTimer);
+  if (state !== 'dialog') return;
+  prospects = prospects.filter(p => p !== currentDialog.p);
+  currentDialog = null; player.safeUntil = gt + 1;
+  $('dialog').classList.remove('on'); state = 'play';
+}
+
+async function endGame() {
+  state = 'end'; timeLeft = 0; jingle([784,659,523,392]);
+  $('endScore').textContent = `${score} MEETING${score === 1 ? '' : 'S'} BOOKED`;
+  $('rank').textContent = 'RANK: ' + (score === 0 ? 'TOURIST' : score < 3 ? 'SWAG COLLECTOR' : score < 6 ? 'SDR OF THE MONTH' : 'NOBOOTH LEGEND');
+  const poster = (score < 3 ? encounters.find(e => !e.booked) : encounters.find(e => e.booked)) || encounters[0] || { name:'Booth Rep #3', title:'Demo Specialist', company:'SynergyAI' };
+  $('liAv').textContent = poster.name.split(' ').map(w => w[0]).slice(0,2).join('');
+  $('liName').textContent = poster.name; $('liTitle').textContent = `${poster.title} @ ${poster.company} · 1h`;
+  const out = $('liText'); out.textContent = 'Fable 5.1 is typing...';
+  $('end').classList.add('on');
+  try {
+    const res = await fetch('/api/linkedin', { method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({ conference:$('conf').value, playerSells:$('prod').value, postAuthor:poster, meetingsBooked:score, demosTheySatThrough:player.demos, timesCorneredByGuyPitchingHisStartup:player.cornered, encounters:encounters.slice(-8) }) });
+    const reader = res.body.getReader(), dec = new TextDecoder(); let first = true;
+    for (;;) { const { done, value } = await reader.read(); if (done) break; if (first) { out.textContent = ''; first = false; } out.textContent += dec.decode(value, { stream:true }); out.scrollTop = out.scrollHeight; }
+    if (first) throw 0;
+  } catch { out.textContent = `Today a stranger with no booth walked up to me.\n\nThey booked ${score} meeting${score===1?'':'s'}.\n\nI have a booth. I booked zero.\n\nThe lesson? The booth was inside us all along.\n\nAgree?\n\n#NoBooth #Humbled #Synergy`; }
+}
+
+function person(x, y, shirt, skin, hair, walk, face = 1, scale = 1) {
+  const s = scale, leg = Math.sin(walk) * 3 * s;
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(x-10*s, y-2*s, 20*s, 5*s);
+  ctx.fillStyle = '#1f2937'; ctx.fillRect(x-7*s, y-12*s, 5*s, 12*s + leg); ctx.fillRect(x+2*s, y-12*s, 5*s, 12*s - leg);
+  ctx.fillStyle = shirt; ctx.fillRect(x-9*s, y-28*s, 18*s, 17*s);
+  ctx.fillStyle = skin; ctx.fillRect(x-7*s, y-41*s, 14*s, 13*s);
+  ctx.fillStyle = hair; ctx.fillRect(x-7*s, y-43*s, 14*s, 5*s);
+  ctx.fillStyle = '#111'; ctx.fillRect(x + (face > 0 ? 1 : -5)*s, y-35*s, 2*s, 3*s); ctx.fillRect(x + (face > 0 ? 4 : -2)*s, y-35*s, 2*s, 3*s);
+}
+function label(x, y, text, bg, fg = '#fff') {
+  ctx.font = `10px ${PX}`; const w = ctx.measureText(text).width + 12;
+  ctx.fillStyle = bg; ctx.fillRect(x - w/2, y - 13, w, 17);
+  ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.fillText(text, x, y); ctx.textAlign = 'left';
+}
+function logoMark(x, y, s) {
+  ctx.fillStyle = '#7C3AED'; ctx.fillRect(x+6*s, y, 14*s, 18*s); ctx.fillRect(x+10*s, y+18*s, 10*s, 4*s);
+  ctx.fillStyle = '#000'; for (let i = 0; i < 9; i++) ctx.fillRect(x+(4+i*2)*s, y+(i*2)*s, 3*s, 3*s);
+  ctx.fillStyle = '#7C3AED'; ctx.fillRect(x, y+12*s, 4*s, 4*s); ctx.fillRect(x+4*s, y+17*s, 4*s, 4*s); ctx.fillRect(x, y+21*s, 3*s, 3*s);
+}
+
+function drawFloor() {
+  for (let y = 60; y < H; y += 40) for (let x = 0; x < W; x += 40) {
+    ctx.fillStyle = ((x+y)/40) % 2 ? '#2b2645' : '#332d52'; ctx.fillRect(x, y, 40, 40);
+  }
+  ctx.fillStyle = '#4a3c8c'; ctx.fillRect(0, 252, W, 40);
+  ctx.fillStyle = '#7C3AED'; for (let x = 10; x < W; x += 60) ctx.fillRect(x, 270, 30, 4);
+  for (const b of booths) {
+    ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fillRect(b.x+6, b.y+6, b.w, b.h);
+    ctx.fillStyle = '#e5e7eb'; ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = b.col; ctx.fillRect(b.x, b.y, b.w, 26);
+    ctx.fillStyle = '#fff'; ctx.font = `8px ${PX}`; ctx.textAlign = 'center';
+    ctx.fillText(b.name.length > 17 ? b.name.slice(0,16)+'.' : b.name, b.x + b.w/2, b.y + 17);
+    ctx.fillStyle = '#9ca3af'; ctx.fillRect(b.x+14, b.y+40, b.w-28, 12);
+    ctx.fillStyle = '#6b7280'; ctx.font = `6px ${PX}`; ctx.fillText('FREE SOCKS', b.x + b.w/2, b.y + 70); ctx.textAlign = 'left';
+  }
+}
+function drawHUD() {
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 60); ctx.fillStyle = '#7C3AED'; ctx.fillRect(0, 57, W, 3);
+  logoMark(14, 12, 1.5);
+  ctx.fillStyle = '#fff'; ctx.font = `14px ${PX}`; ctx.fillText('SUPER NOBOOTH', 56, 38);
+  ctx.font = `12px ${PX}`; ctx.fillStyle = '#C4B5FD'; ctx.fillText(`MEETINGS ${String(score).padStart(2,'0')}`, 330, 37);
+  const t = Math.max(0, timeLeft), bw = 300;
+  ctx.fillStyle = '#2a2440'; ctx.fillRect(560, 20, bw, 22);
+  ctx.fillStyle = t < 15 ? '#ef4444' : '#7C3AED'; ctx.fillRect(560, 20, bw * t/ROUND, 22);
+  ctx.fillStyle = '#fff'; ctx.fillText(`${Math.ceil(t)}s`, 880, 37);
+}
+
+function drawPlay() {
+  drawFloor();
+  if (hummus.on) {
+    const b = Math.sin(gt*5)*2;
+    ctx.fillStyle = '#92400e'; ctx.fillRect(hummus.x-13, hummus.y-4+b, 26, 10);
+    ctx.fillStyle = '#fde68a'; ctx.fillRect(hummus.x-10, hummus.y-8+b, 20, 7);
+    ctx.fillStyle = '#65a30d'; ctx.fillRect(hummus.x-2, hummus.y-8+b, 4, 3);
+    label(hummus.x, hummus.y-16+b, 'HUMMUS', '#d97706');
+  }
+  const ents = [
+    ...prospects.map(p => ({ y:p.y, draw() {
+      const pulse = 14 + Math.sin(gt*6)*3;
+      ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(p.x, p.y, pulse, pulse*.4, 0, 0, 7); ctx.stroke();
+      person(p.x, p.y, p.shirt, p.skin, p.hair, p.walk, p.t.x > p.x ? 1 : -1, 1.45);
+      const k = 1.45, f = p.t.x > p.x ? 1 : -1, X = p.x, Y = p.y;
+      if (p.acc === 'glasses' || p.acc === 'shades') { ctx.fillStyle = p.acc === 'shades' ? '#000' : '#38bdf8'; ctx.fillRect(X-7*k, Y-36*k, 14*k, 4*k); }
+      if (p.acc === 'cap') { ctx.fillStyle = '#7C3AED'; ctx.fillRect(X-8*k, Y-45*k, 16*k, 6*k); ctx.fillRect(X+(f>0?4:-12)*k, Y-41*k, 8*k, 2*k); }
+      if (p.acc === 'long') { ctx.fillStyle = p.hair; ctx.fillRect(X-9*k, Y-41*k, 3*k, 18*k); ctx.fillRect(X+6*k, Y-41*k, 3*k, 18*k); }
+      if (p.acc === 'beard') { ctx.fillStyle = p.hair; ctx.fillRect(X-7*k, Y-32*k, 14*k, 5*k); }
+      if (p.acc === 'bun') { ctx.fillStyle = p.hair; ctx.fillRect(X-3*k, Y-48*k, 6*k, 6*k); }
+      if (p.acc === 'headset') { ctx.fillStyle = '#111'; ctx.fillRect(X-9*k, Y-40*k, 3*k, 8*k); ctx.fillRect(X-8*k, Y-45*k, 16*k, 2*k); }
+      label(p.x, p.y-70, p.data.name.split(' ')[0].toUpperCase(), p.data.ai ? '#7C3AED' : '#374151');
+    }})),
+    ...enemies.map(e => ({ y:e.y, draw() {
+      const tired = gt < e.cool;
+      person(e.x, e.y, e.type === 'rep' ? '#dc2626' : e.type === 'guy' ? '#16a34a' : '#facc15', '#f2c9a0', e.type === 'guy' ? '#7c4a1e' : '#1b1b1b', e.walk, player.x > e.x ? 1 : -1, 1.45);
+      if (e.type === 'scan') { ctx.fillStyle = '#111'; ctx.fillRect(e.x+13, e.y-34, 11, 7); ctx.fillStyle = '#ef4444'; ctx.fillRect(e.x+24, e.y-33, 4, 4); }
+      if (e.type === 'guy') { label(Math.max(190, Math.min(W-190, e.x)), e.y-70, tired ? "WAIT, I DIDN'T FINISH!" : GUY_LINES[Math.floor(gt/2.6) % GUY_LINES.length].toUpperCase(), '#16a34a'); return; }
+      label(e.x, e.y-70, tired ? '...' : e.type === 'rep' ? 'QUICK DEMO?' : 'SCAN BADGE?', tired ? '#4b5563' : e.type === 'rep' ? '#dc2626' : '#ca8a04');
+    }})),
+    { y:player.y, draw() {
+      if (gt < player.boostUntil) { ctx.fillStyle = 'rgba(251,191,36,.35)'; ctx.fillRect(player.x-14-player.face*10, player.y-40, 28, 40); }
+      person(player.x, player.y, '#7C3AED', '#e8b88a', '#2b1d0e', player.walk, player.face, 1.6);
+      label(player.x, player.y-78, 'YOU (NO BOOTH)', '#fff', '#4C1D95');
+    }},
+  ].sort((a, b) => a.y - b.y);
+  ents.forEach(e => e.draw());
+  for (const c of confetti) { ctx.fillStyle = c.c; ctx.fillRect(c.x, c.y, 6, 6); }
+  for (const f of floats) { ctx.font = `10px ${PX}`; ctx.textAlign = 'center'; ctx.fillStyle = '#000'; ctx.fillText(f.text, f.x+2, f.y+2 - (2.2-(f.until-gt))*14); ctx.fillStyle = f.col; ctx.fillText(f.text, f.x, f.y - (2.2-(f.until-gt))*14); ctx.textAlign = 'left'; }
+  if (gt < player.frozenUntil) {
+    const left = player.frozenUntil - gt, slide = Math.min(47, 1 + Math.floor((3-left)*4));
+    ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 60, W, H-60);
+    ctx.fillStyle = '#fff'; ctx.fillRect(230, 200, 500, 215); const guy = player.frozenKind === 'guy'; ctx.fillStyle = guy ? '#16a34a' : '#dc2626'; ctx.fillRect(230, 200, 500, 44);
+    ctx.fillStyle = '#fff'; ctx.font = `14px ${PX}`; ctx.textAlign = 'center'; ctx.fillText(guy ? '"SO, ABOUT MY STARTUP..."' : '"JUST A QUICK DEMO!"', 480, 229);
+    ctx.fillStyle = '#111'; ctx.font = `12px ${PX}`; ctx.fillText(guy ? `Minute ${slide*4} of his pitch` : `Slide ${slide} of 47`, 480, 290);
+    ctx.font = `9px ${PX}`; ctx.fillStyle = '#6b7280'; ctx.fillText(guy ? '"' + GUY_LINES[slide % GUY_LINES.length] + '"' : '"...and as you can see on our roadmap..."', 480, 322);
+    if (Math.floor(gt*6)%2) { ctx.fillStyle = '#7C3AED'; ctx.font = `12px ${PX}`; ctx.fillText('MASH SPACE TO ESCAPE!', 480, 396); }
+    ctx.fillStyle = '#e5e7eb'; ctx.fillRect(290, 350, 380, 18); ctx.fillStyle = guy ? '#16a34a' : '#dc2626'; ctx.fillRect(290, 350, 380*Math.max(0, Math.min(1, 1-left/3)), 18);
+    ctx.textAlign = 'left';
+  }
+  if (banner && performance.now() < banner.until && gt > player.frozenUntil) {
+    ctx.fillStyle = 'rgba(0,0,0,.82)'; ctx.fillRect(0, 64, W, 50); ctx.fillStyle = '#7C3AED'; ctx.fillRect(0, 112, W, 3);
+    ctx.textAlign = 'center'; ctx.font = `9px ${PX}`; ctx.fillStyle = '#C4B5FD'; ctx.fillText(banner.a, W/2, 82);
+    ctx.font = `11px ${PX}`; ctx.fillStyle = '#fff'; ctx.fillText(banner.b.length > 78 ? banner.b.slice(0,77)+'.' : banner.b, W/2, 103); ctx.textAlign = 'left';
+  }
+  if (gt < flashUntil) { ctx.fillStyle = 'rgba(239,68,68,.3)'; ctx.fillRect(0, 60, W, H-60); }
+  drawHUD();
+}
+
+function drawIntro() {
+  const total = introLine*LINE_T + introT, blur = Math.max(0, 14 - total*3.2), lid = Math.max(0, 1 - total/2.2);
+  ctx.filter = blur > .3 ? `blur(${blur}px)` : 'none';
+  ctx.fillStyle = '#2b2740'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#3a3557'; for (let i = 0; i < 6; i++) ctx.fillRect(0, i*110 + 20, W, 8);
+  ctx.fillStyle = '#fef9c3'; for (let i = 0; i < 4; i++) { ctx.fillRect(90 + i*230, 60, 120, 26); ctx.fillRect(200 + i*230, 280, 120, 26); }
+  ctx.fillStyle = '#7C3AED'; ctx.fillRect(40, 150, 300, 70); ctx.fillStyle = '#fff'; ctx.font = `14px ${PX}`; ctx.fillText('EXPO HALL B', 78, 193);
+  const bob = Math.sin(total*2)*6, hx = 640, hy = 120 + bob;
+  ctx.fillStyle = '#dc2626'; ctx.fillRect(hx-150, hy+250, 300, 300);
+  ctx.fillStyle = '#facc15'; ctx.fillRect(hx-20, hy+250, 12, 120); ctx.fillStyle = '#fff'; ctx.fillRect(hx-44, hy+370, 60, 40);
+  ctx.fillStyle = '#f2c9a0'; ctx.fillRect(hx-100, hy, 200, 250);
+  ctx.fillStyle = '#1b1b1b'; ctx.fillRect(hx-100, hy-30, 200, 60);
+  ctx.fillStyle = '#111'; ctx.fillRect(hx-60, hy+90, 28, 28); ctx.fillRect(hx+32, hy+90, 28, 28);
+  ctx.fillStyle = '#fff'; ctx.fillRect(hx-52, hy+94, 10, 10); ctx.fillRect(hx+40, hy+94, 10, 10);
+  ctx.fillStyle = '#7f1d1d'; ctx.fillRect(hx-40, hy+180, 80, Math.floor(total*6)%2 ? 22 : 10);
+  ctx.filter = 'none';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H/2*lid); ctx.fillRect(0, H - H/2*lid, W, H/2*lid);
+  ctx.fillStyle = 'rgba(0,0,0,.85)'; ctx.fillRect(60, 440, W-120, 120); ctx.strokeStyle = '#7C3AED'; ctx.lineWidth = 4; ctx.strokeRect(60, 440, W-120, 120);
+  ctx.fillStyle = '#fca5a5'; ctx.font = `10px ${PX}`; ctx.fillText('BOOTH REP', 84, 470);
+  const txt = INTRO[introLine].slice(0, Math.floor(introT*38));
+  ctx.fillStyle = '#fff'; ctx.font = `13px ${PX}`; wrap(txt, 84, 502, W-170, 26);
+  ctx.fillStyle = '#8f88ad'; ctx.font = `8px ${PX}`; ctx.fillText('SPACE to skip', W-190, 548);
+}
+function wrap(text, x, y, maxW, lh) {
+  let line = '';
+  for (const w of text.split(' ')) {
+    if (ctx.measureText(line + w).width > maxW) { ctx.fillText(line, x, y); y += lh; line = ''; }
+    line += w + ' ';
+  }
+  ctx.fillText(line, x, y);
+}
+
+function frame(t) {
+  const dt = Math.min(.05, (t - last)/1000 || 0); last = t;
+  update(dt);
+  if (state === 'intro') drawIntro();
+  else if (state !== 'title') drawPlay();
+  requestAnimationFrame(frame);
+}
+
+addEventListener('keydown', e => {
+  const typing = document.activeElement && document.activeElement.tagName === 'INPUT';
+  if (state === 'title') { if (e.key === 'Enter') { e.preventDefault(); start(); } return; }
+  if (typing) return;
+  if (e.key === 'm' || e.key === 'M') { muted = !muted; return; }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  if (state === 'intro' && e.key === ' ') { introT = LINE_T; return; }
+  if (state === 'dialog') {
+    if (['1','2','3'].includes(e.key)) choose(+e.key - 1);
+    else if (e.key === ' ' && currentDialog && currentDialog.done) closeDialog();
+    return;
+  }
+  if (state === 'play' && gt < player.frozenUntil) { if (e.key === ' ') { player.frozenUntil -= .45; player.safeUntil = player.frozenUntil + 2; beep(500 + Math.random()*400, .05); } }
+  if (state === 'end' && (e.key === 'r' || e.key === 'R')) return toTitle();
+  keys[e.key.length === 1 ? e.key.toLowerCase() : e.key] = true;
+});
+addEventListener('keyup', e => { keys[e.key.length === 1 ? e.key.toLowerCase() : e.key] = false; });
+function toTitle() { banner = null; prewarm(); try { speechSynthesis.cancel(); } catch {} lastTick = 99; state = 'title'; $('end').classList.remove('on'); $('title').classList.add('on'); setTicker('SUPER NOBOOTH &nbsp;·&nbsp; cast invented live by Fable 5.1'); }
+$('startBtn').onclick = start; $('againBtn').onclick = toTitle;
+
+resetGame();
+prewarm();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
